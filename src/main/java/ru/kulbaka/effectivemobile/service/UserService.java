@@ -13,7 +13,5 @@ public interface UserService {
 
     User getCurrentUser();
 
-    boolean emailExists(String email);
-
     String getAdmin();
 }

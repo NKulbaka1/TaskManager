@@ -15,7 +15,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.kulbaka.effectivemobile.dto.CommentCreateDTO;
 import ru.kulbaka.effectivemobile.dto.CommentViewDTO;
-import ru.kulbaka.effectivemobile.dto.TokenDTO;
 import ru.kulbaka.effectivemobile.service.CommentService;
 
 import java.util.List;

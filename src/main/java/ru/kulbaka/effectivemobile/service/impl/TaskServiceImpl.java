@@ -10,6 +10,8 @@ import ru.kulbaka.effectivemobile.dto.*;
 import ru.kulbaka.effectivemobile.entity.Task;
 import ru.kulbaka.effectivemobile.entity.User;
 import ru.kulbaka.effectivemobile.exception.TaskNotFoundException;
+import ru.kulbaka.effectivemobile.exception.UserAlreadyAdminException;
+import ru.kulbaka.effectivemobile.exception.UserNotFoundException;
 import ru.kulbaka.effectivemobile.mapper.TaskMapper;
 import ru.kulbaka.effectivemobile.model.UserRole;
 import ru.kulbaka.effectivemobile.repository.TaskRepository;
@@ -19,6 +21,10 @@ import ru.kulbaka.effectivemobile.service.UserService;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * @author Кульбака Никита
+ * Сервис для работы с задачами
+ */
 @Service
 @RequiredArgsConstructor
 public class TaskServiceImpl implements TaskService {
@@ -29,7 +35,13 @@ public class TaskServiceImpl implements TaskService {
 
     private final UserService userService;
 
-    public List<TaskViewDTO> getAll() {
+    /**
+     * Получает все задачи
+     *
+     * @return список найденных задач
+     * @throws TaskNotFoundException если задачи не найдены
+     */
+    public List<TaskViewDTO> getAll() throws TaskNotFoundException {
         List<Task> tasks = taskRepository.findAll();
 
         if (tasks.isEmpty()) {
@@ -41,12 +53,23 @@ public class TaskServiceImpl implements TaskService {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Получает задачу по id
+     *
+     * @return задача
+     * @throws TaskNotFoundException если задача не найдена
+     */
     @Override
-    public Task getTaskById(Long id) {
+    public Task getTaskById(Long id) throws TaskNotFoundException {
         return taskRepository.findById(id).orElseThrow(() ->
                 new TaskNotFoundException("Task with id = " + id + " not found"));
     }
 
+    /**
+     * Создаёт задачу
+     *
+     * @return созданная задача
+     */
     public TaskViewDTO create(TaskCreateDTO taskCreateDTO) {
         String currentUserEmail = userService.getCurrentUser().getEmail();
 
@@ -59,8 +82,16 @@ public class TaskServiceImpl implements TaskService {
         return taskMapper.toTaskViewDTO(task);
     }
 
+    /**
+     * Обновляет задачу по id
+     *
+     * @param id            id задачи
+     * @param taskUpdateDTO новые данные задачи
+     * @return задача
+     * @throws TaskNotFoundException если задача не найдена
+     */
     @Override
-    public TaskViewDTO update(Long id, TaskUpdateDTO taskUpdateDTO) {
+    public TaskViewDTO update(Long id, TaskUpdateDTO taskUpdateDTO) throws TaskNotFoundException {
         Task existedTask = getTaskById(id);
         selectiveTaskUpdate(taskUpdateDTO, existedTask);
 
@@ -69,8 +100,15 @@ public class TaskServiceImpl implements TaskService {
         return taskMapper.toTaskViewDTO(existedTask);
     }
 
+    /**
+     * Удаляет задачу по id
+     *
+     * @param id id задачи
+     * @return удалённая задача
+     * @throws TaskNotFoundException если задача не найдена
+     */
     @Override
-    public TaskViewDTO delete(Long id) {
+    public TaskViewDTO delete(Long id) throws TaskNotFoundException {
         Task taskToDelete = getTaskById(id);
 
         taskRepository.delete(taskToDelete);
@@ -78,8 +116,17 @@ public class TaskServiceImpl implements TaskService {
         return taskMapper.toTaskViewDTO(taskToDelete);
     }
 
+    /**
+     * Изменяет статус задачи по id. Доступен исполнителю и админу
+     *
+     * @param id                  id задачи
+     * @param taskChangeStatusDTO новый статус
+     * @return обновлённая задача
+     * @throws TaskNotFoundException если задача не найдена
+     * @throws AccessDeniedException если нет прав на изменение
+     */
     @Override
-    public TaskViewDTO changeStatus(Long id, TaskChangeStatusDTO taskChangeStatusDTO) {
+    public TaskViewDTO changeStatus(Long id, TaskChangeStatusDTO taskChangeStatusDTO) throws TaskNotFoundException, AccessDeniedException {
         Task taskToChange = getTaskById(id);
 
         // если пользователь админ или исполнитель
@@ -93,8 +140,16 @@ public class TaskServiceImpl implements TaskService {
         return taskMapper.toTaskViewDTO(taskToChange);
     }
 
+    /**
+     * Изменяет приоритет задачи по id. Доступен только админу
+     *
+     * @param id                    id задачи
+     * @param taskChangePriorityDTO новый приоритет
+     * @return обновлённая задача
+     * @throws TaskNotFoundException если задача не найдена
+     */
     @Override
-    public TaskViewDTO changePriority(Long id, TaskChangePriorityDTO taskChangePriorityDTO) {
+    public TaskViewDTO changePriority(Long id, TaskChangePriorityDTO taskChangePriorityDTO) throws TaskNotFoundException {
         Task taskToChange = getTaskById(id);
         taskToChange.setPriority(taskChangePriorityDTO.getPriority());
 
@@ -103,8 +158,15 @@ public class TaskServiceImpl implements TaskService {
         return taskMapper.toTaskViewDTO(taskToChange);
     }
 
+    /**
+     * Получает все задачи конкретного автора с пагинацией. Есть опциональная фильтрация
+     *
+     * @param taskViewAllByAuthorDTO данные для получения выборки
+     * @return список задач
+     * @throws TaskNotFoundException если задачи не найдены
+     */
     @Override
-    public List<TaskViewDTO> getAllByAuthor(TaskGetAllByPersonDTO taskViewAllByAuthorDTO) {
+    public List<TaskViewDTO> getAllByAuthor(TaskGetAllByPersonDTO taskViewAllByAuthorDTO) throws TaskNotFoundException {
         User author = userService.getByEmail(taskViewAllByAuthorDTO.getEmail());
 
         Pageable pageable = PageRequest.of(taskViewAllByAuthorDTO.getOffset(), taskViewAllByAuthorDTO.getLimit());
@@ -114,6 +176,13 @@ public class TaskServiceImpl implements TaskService {
         return filterTasksAndMapToDTO(taskViewAllByAuthorDTO, taskPage);
     }
 
+    /**
+     * Получает все задачи конкретного исполнителя с пагинацией. Есть опциональная фильтрация
+     *
+     * @param taskViewAllByPerformerDTO данные для получения выборки
+     * @return список задач
+     * @throws TaskNotFoundException если задачи не найдены
+     */
     @Override
     public List<TaskViewDTO> getAllByPerformer(TaskGetAllByPersonDTO taskViewAllByPerformerDTO) {
         User performer = userService.getByEmail(taskViewAllByPerformerDTO.getEmail());
@@ -125,7 +194,15 @@ public class TaskServiceImpl implements TaskService {
         return filterTasksAndMapToDTO(taskViewAllByPerformerDTO, taskPage);
     }
 
-    private List<TaskViewDTO> filterTasksAndMapToDTO(TaskGetAllByPersonDTO taskViewAllByPersonDTO, Page<Task> taskPage) {
+    /**
+     * Фильтрует по параметрам и формирует итоговую выборку задач
+     *
+     * @param taskViewAllByPersonDTO данные для фильтрации
+     * @param taskPage               задачи
+     * @return список задач
+     * @throws TaskNotFoundException если в итоговой выборке нет задач
+     */
+    private List<TaskViewDTO> filterTasksAndMapToDTO(TaskGetAllByPersonDTO taskViewAllByPersonDTO, Page<Task> taskPage) throws TaskNotFoundException {
         List<TaskViewDTO> tasks = taskPage.stream()
                 .filter(task -> (taskViewAllByPersonDTO.getStatus() == null
                         || taskViewAllByPersonDTO.getStatus() == task.getStatus()))
@@ -141,21 +218,28 @@ public class TaskServiceImpl implements TaskService {
         return tasks;
     }
 
-    private void selectiveTaskUpdate(TaskUpdateDTO newTask, Task existedTask) {
-        if (newTask.getTitle() != null) {
-            existedTask.setTitle(newTask.getTitle());
+    /**
+     * Выборочно обновляет задачу
+     *
+     * @param taskUpdateDTO данные для обновления
+     * @param existedTask   обновляемая задача
+     */
+    private void selectiveTaskUpdate(TaskUpdateDTO taskUpdateDTO, Task existedTask) {
+        if (taskUpdateDTO.getTitle() != null) {
+            existedTask.setTitle(taskUpdateDTO.getTitle());
         }
-        if (newTask.getDescription() != null) {
-            existedTask.setDescription(newTask.getDescription());
+        if (taskUpdateDTO.getDescription() != null) {
+            existedTask.setDescription(taskUpdateDTO.getDescription());
         }
-        if (newTask.getStatus() != null) {
-            existedTask.setStatus(newTask.getStatus());
+        if (taskUpdateDTO.getStatus() != null) {
+            existedTask.setStatus(taskUpdateDTO.getStatus());
         }
-        if (newTask.getPriority() != null) {
-            existedTask.setPriority(newTask.getPriority());
+        if (taskUpdateDTO.getPriority() != null) {
+            existedTask.setPriority(taskUpdateDTO.getPriority());
         }
-        if (newTask.getPerformer() != null) { // TODO проверить на одинакогого чела чтобы избежать лишнего запроса в бд
-            User newPerformer = userService.getByEmail(newTask.getPerformer());
+        // если есть новый исполнитель и он не совпадает со старым
+        if (taskUpdateDTO.getPerformer() != null && !taskUpdateDTO.getPerformer().equals(existedTask.getPerformer().getEmail())) {
+            User newPerformer = userService.getByEmail(taskUpdateDTO.getPerformer());
             existedTask.setPerformer(newPerformer);
         }
     }

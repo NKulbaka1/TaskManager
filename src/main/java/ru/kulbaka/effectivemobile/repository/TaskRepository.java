@@ -7,8 +7,6 @@ import org.springframework.stereotype.Repository;
 import ru.kulbaka.effectivemobile.entity.Task;
 import ru.kulbaka.effectivemobile.entity.User;
 
-import java.util.Optional;
-
 @Repository
 public interface TaskRepository extends JpaRepository<Task, Long> {
 

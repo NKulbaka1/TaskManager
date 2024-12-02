@@ -1,20 +1,17 @@
 package ru.kulbaka.effectivemobile.service.impl;
 
-import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import ru.kulbaka.effectivemobile.dto.CommentCreateDTO;
 import ru.kulbaka.effectivemobile.dto.CommentViewDTO;
 import ru.kulbaka.effectivemobile.entity.Comment;
 import ru.kulbaka.effectivemobile.entity.Task;
 import ru.kulbaka.effectivemobile.exception.CommentNotFoundException;
+import ru.kulbaka.effectivemobile.exception.TaskNotFoundException;
 import ru.kulbaka.effectivemobile.mapper.CommentMapper;
 import ru.kulbaka.effectivemobile.model.UserRole;
 import ru.kulbaka.effectivemobile.repository.CommentRepository;
-import ru.kulbaka.effectivemobile.security.UserDetailsImpl;
 import ru.kulbaka.effectivemobile.service.CommentService;
 import ru.kulbaka.effectivemobile.service.TaskService;
 import ru.kulbaka.effectivemobile.service.UserService;
@@ -22,6 +19,10 @@ import ru.kulbaka.effectivemobile.service.UserService;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * @author Кульбака Никита
+ * Сервис для работы с комментариями
+ */
 @Service
 @RequiredArgsConstructor
 public class CommentServiceImpl implements CommentService {
@@ -35,8 +36,15 @@ public class CommentServiceImpl implements CommentService {
     private final UserService userService;
 
 
+    /**
+     * Создаёт комментарий. Доступен админу и исполнителю задачи
+     *
+     * @param commentCreateDTO данные для создания комментария
+     * @return созданный комментарий
+     * @throws AccessDeniedException если недостаточно прав
+     */
     @Override
-    public CommentViewDTO create(CommentCreateDTO commentCreateDTO) {
+    public CommentViewDTO create(CommentCreateDTO commentCreateDTO) throws AccessDeniedException {
         Task task = taskService.getTaskById(commentCreateDTO.getTaskId());
 
         if (userService.getCurrentUser().getEmail().equals(task.getPerformer().getEmail())
@@ -52,14 +60,21 @@ public class CommentServiceImpl implements CommentService {
         } else throw new AccessDeniedException("Insufficient rights");
     }
 
+    /**
+     * Получает все комментарии к задаче по её id
+     *
+     * @param taskId id задачи
+     * @return список комментариев
+     * @throws CommentNotFoundException если комментарии не найдены
+     */
     @Override
-    public List<CommentViewDTO> getAllByTaskId(Long taskId) {
+    public List<CommentViewDTO> getAllByTaskId(Long taskId) throws CommentNotFoundException {
         Task task = taskService.getTaskById(taskId);
 
         List<Comment> comments = commentRepository.findAllByTask(task);
 
         if (comments.isEmpty()) {
-                throw new CommentNotFoundException("Comments not found");
+            throw new CommentNotFoundException("Comments not found");
         }
 
         return comments.stream()
@@ -67,8 +82,16 @@ public class CommentServiceImpl implements CommentService {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Удаляет комментарий по id. Доступен админу и исполнителю задачи
+     *
+     * @param commentId id комментария
+     * @return удалённый комментарий
+     * @throws CommentNotFoundException если комментарий не найден
+     * @throws AccessDeniedException    если недостаточно прав
+     */
     @Override
-    public CommentViewDTO deleteById(Long commentId) {
+    public CommentViewDTO deleteById(Long commentId) throws CommentNotFoundException, AccessDeniedException {
         Comment comment = commentRepository.findById(commentId).orElseThrow(() ->
                 new CommentNotFoundException("Comment not found"));
 

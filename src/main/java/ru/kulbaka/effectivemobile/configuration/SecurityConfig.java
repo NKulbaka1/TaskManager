@@ -42,7 +42,6 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.csrf(AbstractHttpConfigurer::disable)
-                 //Своего рода отключение CORS (разрешение запросов со всех доменов)
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(request -> request
                         .requestMatchers("/swagger-ui/**",
@@ -63,9 +62,8 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
 
-        // Настройка CORS параметров
         configuration.setAllowCredentials(true);
-        configuration.addAllowedOrigin("http://localhost:8080"); //Обращение с текущего устройства
+        configuration.addAllowedOrigin("http://localhost:8080");
         configuration.setAllowedHeaders(List.of("Authorization", "Cache-Control", "Content-Type"));
         configuration.setExposedHeaders(List.of("Authorization", "Cache-Control", "Content-Type"));
         configuration.setAllowCredentials(true);
@@ -75,7 +73,7 @@ public class SecurityConfig {
                 HttpMethod.PUT.name(),
                 HttpMethod.PATCH.name(),
                 HttpMethod.DELETE.name()
-        )); // Разрешить все методы (GET, POST и т.д.)
+        ));
         configuration.setMaxAge(3600L);
 
 

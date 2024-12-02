@@ -6,7 +6,6 @@ import ru.kulbaka.effectivemobile.entity.Comment;
 import ru.kulbaka.effectivemobile.entity.Task;
 
 import java.util.List;
-import java.util.Optional;
 
 @Repository
 public interface CommentRepository extends JpaRepository<Comment, Long> {

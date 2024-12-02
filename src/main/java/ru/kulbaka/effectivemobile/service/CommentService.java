@@ -2,7 +2,6 @@ package ru.kulbaka.effectivemobile.service;
 
 import ru.kulbaka.effectivemobile.dto.CommentCreateDTO;
 import ru.kulbaka.effectivemobile.dto.CommentViewDTO;
-import ru.kulbaka.effectivemobile.dto.TaskViewDTO;
 
 import java.util.List;
 

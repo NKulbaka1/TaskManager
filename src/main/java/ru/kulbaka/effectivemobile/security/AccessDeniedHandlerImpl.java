@@ -8,6 +8,11 @@ import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 
+/**
+ * @author Кульбака Никита
+ * Обработчик для исключения AccessDeniedException, которое
+ * может выброситься в процессе работы фильтров Spring Security
+ */
 @Component
 public class AccessDeniedHandlerImpl implements AccessDeniedHandler {
 

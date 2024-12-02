@@ -91,6 +91,9 @@ public class UserTaskController {
                     Позволяет изменить статус у задачи по id
                     Доступ: админ или исполнитель задачи
                     """,
+            parameters = {
+                    @Parameter(name = "taskId", description = "id задачи", required = true, schema = @Schema(implementation = String.class))
+            },
             responses = {
                     @ApiResponse(responseCode = "200", description = "Статус изменён", content = @Content(schema = @Schema(implementation = TaskViewDTO.class))),
                     @ApiResponse(responseCode = "401", description = "Ошибка аутентификации", content = @Content(schema = @Schema(implementation = String.class))),
@@ -100,8 +103,8 @@ public class UserTaskController {
             }
     )
     @SecurityRequirement(name = "JWT")
-    @PatchMapping("/{id}/change-status")
-    public ResponseEntity<TaskViewDTO> changeStatus(@PathVariable("id") Long id, @RequestBody @Valid TaskChangeStatusDTO taskChangeStatusDTO) {
-        return ResponseEntity.status(HttpStatus.OK).body(taskService.changeStatus(id, taskChangeStatusDTO));
+    @PatchMapping("/{taskId}/change-status")
+    public ResponseEntity<TaskViewDTO> changeStatus(@PathVariable("taskId") Long taskId, @RequestBody @Valid TaskChangeStatusDTO taskChangeStatusDTO) {
+        return ResponseEntity.status(HttpStatus.OK).body(taskService.changeStatus(taskId, taskChangeStatusDTO));
     }
 }

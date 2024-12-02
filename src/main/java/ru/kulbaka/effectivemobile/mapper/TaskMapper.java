@@ -1,38 +1,13 @@
 package ru.kulbaka.effectivemobile.mapper;
 
-import org.springframework.stereotype.Component;
 import ru.kulbaka.effectivemobile.dto.TaskCreateDTO;
 import ru.kulbaka.effectivemobile.dto.TaskViewDTO;
 import ru.kulbaka.effectivemobile.entity.Task;
 
-import java.util.ArrayList;
+public interface TaskMapper {
 
-@Component
-public class TaskMapper {
+    TaskViewDTO toTaskViewDTO(Task task);
 
-    public TaskViewDTO toTaskViewDTO(Task task) {
-        TaskViewDTO taskViewDTO = new TaskViewDTO();
+    Task toTask(TaskCreateDTO taskCreateDTO);
 
-        taskViewDTO.setId(task.getId());
-        taskViewDTO.setTitle(task.getTitle());
-        taskViewDTO.setDescription(task.getDescription());
-        taskViewDTO.setStatus(task.getStatus());
-        taskViewDTO.setPriority(task.getPriority());
-        taskViewDTO.setAuthor(task.getAuthor().getEmail());
-        taskViewDTO.setPerformer(task.getPerformer().getEmail());
-
-        return taskViewDTO;
-    }
-
-    public Task toTask(TaskCreateDTO taskCreateDTO) {
-        Task task = new Task();
-
-        task.setTitle(taskCreateDTO.getTitle());
-        task.setDescription(taskCreateDTO.getDescription());
-        task.setStatus(taskCreateDTO.getStatus());
-        task.setPriority(taskCreateDTO.getPriority());
-        task.setComments(new ArrayList<>());
-
-        return task;
-    }
 }
