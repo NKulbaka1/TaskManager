@@ -18,9 +18,9 @@ public interface TaskService {
 
     TaskViewDTO changePriority(Long id, TaskChangePriorityDTO taskChangePriorityDTO);
 
-    List<TaskViewDTO> getAllByAuthor(TaskViewAllByPersonDTO taskViewAllByAuthorDTO);
+    List<TaskViewDTO> getAllByAuthor(TaskGetAllByPersonDTO taskViewAllByAuthorDTO);
 
-    List<TaskViewDTO> getAllByPerformer(TaskViewAllByPersonDTO taskViewAllByPerformerDTO);
+    List<TaskViewDTO> getAllByPerformer(TaskGetAllByPersonDTO taskViewAllByPerformerDTO);
 
     Task getTaskById(Long id);
 }

@@ -57,12 +57,13 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void getAdmin() {
+    public String getAdmin() {
         User user = getCurrentUser();
         if (user.getUserRole() == UserRole.ROLE_ADMIN) {
             throw new UserAlreadyAdminException("User already admin");
         }
         user.setUserRole(UserRole.ROLE_ADMIN);
         userRepository.save(user);
+        return "user " + user.getEmail() + " has been assigned the admin role";
     }
 }

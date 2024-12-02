@@ -1,28 +1,21 @@
 package ru.kulbaka.effectivemobile.service.impl;
 
-import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import ru.kulbaka.effectivemobile.dto.*;
 import ru.kulbaka.effectivemobile.entity.Task;
 import ru.kulbaka.effectivemobile.entity.User;
 import ru.kulbaka.effectivemobile.exception.TaskNotFoundException;
-import ru.kulbaka.effectivemobile.exception.UserNotFoundException;
 import ru.kulbaka.effectivemobile.mapper.TaskMapper;
 import ru.kulbaka.effectivemobile.model.UserRole;
 import ru.kulbaka.effectivemobile.repository.TaskRepository;
-import ru.kulbaka.effectivemobile.security.UserDetailsImpl;
 import ru.kulbaka.effectivemobile.service.TaskService;
 import ru.kulbaka.effectivemobile.service.UserService;
 
-import java.security.Principal;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -38,6 +31,10 @@ public class TaskServiceImpl implements TaskService {
 
     public List<TaskViewDTO> getAll() {
         List<Task> tasks = taskRepository.findAll();
+
+        if (tasks.isEmpty()) {
+            throw new TaskNotFoundException("Tasks not found");
+        }
 
         return tasks.stream()
                 .map(taskMapper::toTaskViewDTO)
@@ -107,33 +104,41 @@ public class TaskServiceImpl implements TaskService {
     }
 
     @Override
-    public List<TaskViewDTO> getAllByAuthor(TaskViewAllByPersonDTO taskViewAllByAuthorDTO) {
+    public List<TaskViewDTO> getAllByAuthor(TaskGetAllByPersonDTO taskViewAllByAuthorDTO) {
         User author = userService.getByEmail(taskViewAllByAuthorDTO.getEmail());
 
         Pageable pageable = PageRequest.of(taskViewAllByAuthorDTO.getOffset(), taskViewAllByAuthorDTO.getLimit());
 
         Page<Task> taskPage = taskRepository.findAllByAuthor(author, pageable);
 
-        return taskPage.stream()
-                .map(taskMapper::toTaskViewDTO)
-                .collect(Collectors.toList());
+        return filterTasksAndMapToDTO(taskViewAllByAuthorDTO, taskPage);
     }
 
     @Override
-    public List<TaskViewDTO> getAllByPerformer(TaskViewAllByPersonDTO taskViewAllByPerformerDTO) {
+    public List<TaskViewDTO> getAllByPerformer(TaskGetAllByPersonDTO taskViewAllByPerformerDTO) {
         User performer = userService.getByEmail(taskViewAllByPerformerDTO.getEmail());
 
         Pageable pageable = PageRequest.of(taskViewAllByPerformerDTO.getOffset(), taskViewAllByPerformerDTO.getLimit());
 
         Page<Task> taskPage = taskRepository.findAllByPerformer(performer, pageable);
 
-        return taskPage.stream()
-                .filter(task -> (taskViewAllByPerformerDTO.getStatus() == null
-                        || taskViewAllByPerformerDTO.getStatus() == task.getStatus()))
-                .filter(task -> (taskViewAllByPerformerDTO.getPriority() == null
-                        || taskViewAllByPerformerDTO.getPriority() == task.getPriority()))
+        return filterTasksAndMapToDTO(taskViewAllByPerformerDTO, taskPage);
+    }
+
+    private List<TaskViewDTO> filterTasksAndMapToDTO(TaskGetAllByPersonDTO taskViewAllByPersonDTO, Page<Task> taskPage) {
+        List<TaskViewDTO> tasks = taskPage.stream()
+                .filter(task -> (taskViewAllByPersonDTO.getStatus() == null
+                        || taskViewAllByPersonDTO.getStatus() == task.getStatus()))
+                .filter(task -> (taskViewAllByPersonDTO.getPriority() == null
+                        || taskViewAllByPersonDTO.getPriority() == task.getPriority()))
                 .map(taskMapper::toTaskViewDTO)
                 .collect(Collectors.toList());
+
+        if (tasks.isEmpty()) {
+            throw new TaskNotFoundException("Tasks not found");
+        }
+
+        return tasks;
     }
 
     private void selectiveTaskUpdate(TaskUpdateDTO newTask, Task existedTask) {

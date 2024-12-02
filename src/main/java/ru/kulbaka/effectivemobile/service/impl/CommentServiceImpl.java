@@ -56,8 +56,11 @@ public class CommentServiceImpl implements CommentService {
     public List<CommentViewDTO> getAllByTaskId(Long taskId) {
         Task task = taskService.getTaskById(taskId);
 
-        List<Comment> comments = commentRepository.findAllByTask(task).orElseThrow(() ->
-                new CommentNotFoundException("Comments not found"));
+        List<Comment> comments = commentRepository.findAllByTask(task);
+
+        if (comments.isEmpty()) {
+                throw new CommentNotFoundException("Comments not found");
+        }
 
         return comments.stream()
                 .map(commentMapper::toCommentViewDTO)
@@ -69,7 +72,10 @@ public class CommentServiceImpl implements CommentService {
         Comment comment = commentRepository.findById(commentId).orElseThrow(() ->
                 new CommentNotFoundException("Comment not found"));
 
-        commentRepository.delete(comment);
-        return commentMapper.toCommentViewDTO(comment);
+        if (userService.getCurrentUser().getEmail().equals(comment.getAuthor().getEmail())
+                || userService.getCurrentUser().getUserRole() == UserRole.ROLE_ADMIN) {
+            commentRepository.delete(comment);
+            return commentMapper.toCommentViewDTO(comment);
+        } else throw new AccessDeniedException("Insufficient rights");
     }
 }

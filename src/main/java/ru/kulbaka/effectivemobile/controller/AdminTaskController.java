@@ -1,9 +1,16 @@
 package ru.kulbaka.effectivemobile.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -21,28 +28,90 @@ public class AdminTaskController {
 
     private final TaskService taskService;
 
+
+    @Operation(
+            summary = "Создание задачи",
+            description = """
+                    Позволяет создать задачу
+                    Доступ: админ
+                    """,
+            responses = {
+                    @ApiResponse(responseCode = "201", description = "Задача создана", content = @Content(schema = @Schema(implementation = TaskViewDTO.class))),
+                    @ApiResponse(responseCode = "401", description = "Ошибка аутентификации", content = @Content(schema = @Schema(implementation = String.class))),
+                    @ApiResponse(responseCode = "403", description = "Недостаточно прав", content = @Content(schema = @Schema(implementation = String.class))),
+                    @ApiResponse(responseCode = "404", description = "Исполнитель не найден", content = @Content(schema = @Schema(implementation = String.class))),
+                    @ApiResponse(responseCode = "500", description = "Ошибка на стороне сервера", content = @Content(schema = @Schema(implementation = String.class)))
+            }
+    )
+    @SecurityRequirement(name = "JWT")
     @PostMapping
     public ResponseEntity<TaskViewDTO> create(@RequestBody @Valid TaskCreateDTO taskCreateDTO) {
-        return ResponseEntity.ok(taskService.create(taskCreateDTO));
+        return ResponseEntity.status(HttpStatus.CREATED).body(taskService.create(taskCreateDTO));
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<TaskViewDTO> update(@PathVariable("id") Long id, @RequestBody TaskUpdateDTO taskUpdateDTO) {
-        return ResponseEntity.ok(taskService.update(id, taskUpdateDTO));
+    @Operation(
+            summary = "Редактирование задачи",
+            description = """
+                    Позволяет выборочно изменить параметры задачи
+                    Доступ: админ
+                    """,
+            parameters = {
+                    @Parameter(name = "taskId", description = "id задачи", required = true, schema = @Schema(implementation = String.class))
+            },
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Задача обновлена", content = @Content(schema = @Schema(implementation = TaskViewDTO.class))),
+                    @ApiResponse(responseCode = "401", description = "Ошибка аутентификации", content = @Content(schema = @Schema(implementation = String.class))),
+                    @ApiResponse(responseCode = "403", description = "Недостаточно прав", content = @Content(schema = @Schema(implementation = String.class))),
+                    @ApiResponse(responseCode = "404", description = "Задача или новый исполнитель не найдены", content = @Content(schema = @Schema(implementation = String.class))),
+                    @ApiResponse(responseCode = "500", description = "Ошибка на стороне сервера", content = @Content(schema = @Schema(implementation = String.class)))
+            }
+    )
+    @SecurityRequirement(name = "JWT")
+    @PatchMapping("/{taskId}")
+    public ResponseEntity<TaskViewDTO> update(@PathVariable("taskId") Long taskId, @RequestBody @Valid TaskUpdateDTO taskUpdateDTO) {
+        return ResponseEntity.status(HttpStatus.OK).body(taskService.update(taskId, taskUpdateDTO));
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<TaskViewDTO> delete(@PathVariable("id") Long id) {
-        return ResponseEntity.ok(taskService.delete(id));
+    @Operation(
+            summary = "Изменение приоритета у задачи",
+            description = """
+                    Позволяет изменить приоритет у задачи по id
+                    Доступ: админ
+                    """,
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Приоритет изменён", content = @Content(schema = @Schema(implementation = TaskViewDTO.class))),
+                    @ApiResponse(responseCode = "401", description = "Ошибка аутентификации", content = @Content(schema = @Schema(implementation = String.class))),
+                    @ApiResponse(responseCode = "404", description = "Задача не найдена", content = @Content(schema = @Schema(implementation = String.class))),
+                    @ApiResponse(responseCode = "403", description = "Недостаточно прав", content = @Content(schema = @Schema(implementation = String.class))),
+                    @ApiResponse(responseCode = "500", description = "Ошибка на стороне сервера", content = @Content(schema = @Schema(implementation = String.class)))
+            }
+    )
+    @SecurityRequirement(name = "JWT")
+    @PatchMapping("/{id}/change-priority")
+    public ResponseEntity<TaskViewDTO> changePriority(@PathVariable("id") Long id, @RequestBody @Valid TaskChangePriorityDTO taskChangePriorityDTO) {
+        return ResponseEntity.status(HttpStatus.OK).body(taskService.changePriority(id, taskChangePriorityDTO));
     }
 
-//    @PatchMapping("/{id}/change-status")
-//    public ResponseEntity<TaskViewDTO> changeStatus(@PathVariable("id") Long id, @RequestBody TaskChangeStatusDTO taskChangeStatusDTO) {
-//        return ResponseEntity.ok(taskService.changeStatus(id, taskChangeStatusDTO));
-//    }
-//
-//    @PatchMapping("/{id}/change-priority")
-//    public ResponseEntity<TaskViewDTO> changePriority(@PathVariable("id") Long id, @RequestBody TaskChangePriorityDTO taskChangePriorityDTO) {
-//        return ResponseEntity.ok(taskService.changePriority(id, taskChangePriorityDTO));
-//    }
+    @Operation(
+            summary = "Удаление задачи",
+            description = """
+                    Позволяет удалить задачу по id
+                    Доступ: админ
+                    """,
+            parameters = {
+                    @Parameter(name = "taskId", description = "id задачи", required = true, schema = @Schema(implementation = String.class))
+            },
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Задача удалена", content = @Content(schema = @Schema(implementation = TaskViewDTO.class))),
+                    @ApiResponse(responseCode = "401", description = "Ошибка аутентификации", content = @Content(schema = @Schema(implementation = String.class))),
+                    @ApiResponse(responseCode = "403", description = "Недостаточно прав", content = @Content(schema = @Schema(implementation = String.class))),
+                    @ApiResponse(responseCode = "404", description = "Задача не найден", content = @Content(schema = @Schema(implementation = String.class))),
+                    @ApiResponse(responseCode = "500", description = "Ошибка на стороне сервера", content = @Content(schema = @Schema(implementation = String.class)))
+            }
+    )
+    @SecurityRequirement(name = "JWT")
+    @DeleteMapping("/{taskId}")
+    public ResponseEntity<TaskViewDTO> delete(@PathVariable("taskId") Long taskId) {
+        return ResponseEntity.status(HttpStatus.OK).body(taskService.delete(taskId));
+    }
 }

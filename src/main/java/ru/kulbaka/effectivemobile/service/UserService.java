@@ -15,5 +15,5 @@ public interface UserService {
 
     boolean emailExists(String email);
 
-    void getAdmin();
+    String getAdmin();
 }
