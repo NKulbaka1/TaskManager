@@ -1,9 +1,13 @@
 package ru.kulbaka.effectivemobile.service.impl;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import ru.kulbaka.effectivemobile.dto.CommentCreateDTO;
+import ru.kulbaka.effectivemobile.dto.CommentGetAllWithPaginationDTO;
 import ru.kulbaka.effectivemobile.dto.CommentViewDTO;
 import ru.kulbaka.effectivemobile.entity.Comment;
 import ru.kulbaka.effectivemobile.entity.Task;
@@ -68,18 +72,22 @@ public class CommentServiceImpl implements CommentService {
      * @throws CommentNotFoundException если комментарии не найдены
      */
     @Override
-    public List<CommentViewDTO> getAllByTaskId(Long taskId) throws CommentNotFoundException {
+    public List<CommentViewDTO> getAllByTaskId(Long taskId, CommentGetAllWithPaginationDTO commentGetAllWithPaginationDTO) throws CommentNotFoundException {
         Task task = taskService.getTaskById(taskId);
 
-        List<Comment> comments = commentRepository.findAllByTask(task);
+        Pageable pageable = PageRequest.of(commentGetAllWithPaginationDTO.getOffset(), commentGetAllWithPaginationDTO.getLimit());
+
+        Page<Comment> commentPage = commentRepository.findAllByTask(task, pageable);
+
+        List<CommentViewDTO> comments = commentPage.stream()
+                .map(commentMapper::toCommentViewDTO)
+                .collect(Collectors.toList());
 
         if (comments.isEmpty()) {
             throw new CommentNotFoundException("Comments not found");
         }
 
-        return comments.stream()
-                .map(commentMapper::toCommentViewDTO)
-                .collect(Collectors.toList());
+        return comments;
     }
 
     /**

@@ -27,7 +27,7 @@ public class AdminTaskController {
     @Operation(
             summary = "Создание задачи",
             description = """
-                    Позволяет создать задачу
+                    Позволяет создать задачу.
                     Доступ: админ
                     """,
             responses = {
@@ -47,7 +47,7 @@ public class AdminTaskController {
     @Operation(
             summary = "Редактирование задачи",
             description = """
-                    Позволяет выборочно изменить параметры задачи
+                    Позволяет выборочно изменить параметры задачи.
                     Доступ: админ
                     """,
             parameters = {
@@ -70,7 +70,7 @@ public class AdminTaskController {
     @Operation(
             summary = "Изменение приоритета у задачи",
             description = """
-                    Позволяет изменить приоритет у задачи по id
+                    Позволяет изменить приоритет у задачи по id.
                     Доступ: админ
                     """,
             responses = {
@@ -90,7 +90,7 @@ public class AdminTaskController {
     @Operation(
             summary = "Удаление задачи",
             description = """
-                    Позволяет удалить задачу по id
+                    Позволяет удалить задачу по id.
                     Доступ: админ
                     """,
             parameters = {

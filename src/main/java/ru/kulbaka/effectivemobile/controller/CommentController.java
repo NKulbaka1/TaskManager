@@ -14,6 +14,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.kulbaka.effectivemobile.dto.CommentCreateDTO;
+import ru.kulbaka.effectivemobile.dto.CommentGetAllWithPaginationDTO;
 import ru.kulbaka.effectivemobile.dto.CommentViewDTO;
 import ru.kulbaka.effectivemobile.service.CommentService;
 
@@ -30,7 +31,7 @@ public class CommentController {
     @Operation(
             summary = "Создание комментария",
             description = """
-                    Позволяет оставить комментарий под задачей
+                    Позволяет оставить комментарий под задачей.
                     Доступ: админ или исполнитель задачи
                     """,
             responses = {
@@ -50,7 +51,7 @@ public class CommentController {
     @Operation(
             summary = "Получение комментариев к задаче",
             description = """
-                    Позволяет получить все комментарии к задаче с указанным id
+                    Позволяет получить все комментарии к задаче с указанным id с пагинацией.
                     Доступ: любой пользователь
                     """,
             parameters = {
@@ -64,15 +65,15 @@ public class CommentController {
             }
     )
     @SecurityRequirement(name = "JWT")
-    @GetMapping("/get-all/{taskId}")
-    public ResponseEntity<List<CommentViewDTO>> getAllByTaskId(@PathVariable("taskId") Long taskId) {
-        return ResponseEntity.status(HttpStatus.OK).body(commentService.getAllByTaskId(taskId));
+    @PostMapping("/get-all/{taskId}")
+    public ResponseEntity<List<CommentViewDTO>> getAllByTaskId(@PathVariable("taskId") Long taskId, @RequestBody @Valid CommentGetAllWithPaginationDTO commentGetAllWithPaginationDTO) {
+        return ResponseEntity.status(HttpStatus.OK).body(commentService.getAllByTaskId(taskId, commentGetAllWithPaginationDTO));
     }
 
     @Operation(
             summary = "Удаление комментария",
             description = """
-                    Позволяет удалить комментарий по id
+                    Позволяет удалить комментарий по id.
                     Доступ: админ или исполнитель задачи, если комментарий под его задачей
                     """,
             parameters = {
