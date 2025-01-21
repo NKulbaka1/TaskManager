@@ -30,15 +30,6 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-/**
- * Почему нет тестов?
- *
- * С того момента, когда я последний раз писал тесты, Spring Boot и Mockito обновились до новых версий.
- * Теперь у меня не получается внедрить моки в объект и я ума не приложу почему. Соответственно подмена поведения в тестах
- * также не работает.
- * Времени на поиск проблем не остаётся, а снова просить дополнительное время на сдачу тестового просто не удобно, поэтому
- * отправляю, как есть, без тестов.
- */
 @SpringBootTest
 @AutoConfigureMockMvc
 public class AdminTaskControllerTest {

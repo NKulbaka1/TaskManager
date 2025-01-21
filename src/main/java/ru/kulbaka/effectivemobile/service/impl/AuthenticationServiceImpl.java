@@ -6,6 +6,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.kulbaka.effectivemobile.dto.UserCredentialsDTO;
 import ru.kulbaka.effectivemobile.dto.TokenDTO;
 import ru.kulbaka.effectivemobile.entity.User;
@@ -39,6 +40,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
      * @return токен доступа
      */
     @Override
+    @Transactional
     public TokenDTO signUp(UserCredentialsDTO userCredentialsDTO) {
         User user = new User(userCredentialsDTO.getEmail(), passwordEncoder.encode(userCredentialsDTO.getPassword()), UserRole.ROLE_USER);
 
@@ -54,6 +56,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
      * @return токен доступа
      */
     @Override
+    @Transactional(readOnly = true)
     public TokenDTO signIn(UserCredentialsDTO signInDTO) {
         authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(
                 signInDTO.getEmail(),

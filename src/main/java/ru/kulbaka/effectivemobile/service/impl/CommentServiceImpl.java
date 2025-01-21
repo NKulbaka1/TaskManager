@@ -6,6 +6,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.kulbaka.effectivemobile.dto.CommentCreateDTO;
 import ru.kulbaka.effectivemobile.dto.CommentGetAllWithPaginationDTO;
 import ru.kulbaka.effectivemobile.dto.CommentViewDTO;
@@ -48,6 +49,7 @@ public class CommentServiceImpl implements CommentService {
      * @throws AccessDeniedException если недостаточно прав
      */
     @Override
+    @Transactional
     public CommentViewDTO create(CommentCreateDTO commentCreateDTO) throws AccessDeniedException {
         Task task = taskService.getTaskById(commentCreateDTO.getTaskId());
 
@@ -72,6 +74,7 @@ public class CommentServiceImpl implements CommentService {
      * @throws CommentNotFoundException если комментарии не найдены
      */
     @Override
+    @Transactional(readOnly = true)
     public List<CommentViewDTO> getAllByTaskId(Long taskId, CommentGetAllWithPaginationDTO commentGetAllWithPaginationDTO) throws CommentNotFoundException {
         Task task = taskService.getTaskById(taskId);
 
@@ -99,6 +102,7 @@ public class CommentServiceImpl implements CommentService {
      * @throws AccessDeniedException    если недостаточно прав
      */
     @Override
+    @Transactional
     public CommentViewDTO deleteById(Long commentId) throws CommentNotFoundException, AccessDeniedException {
         Comment comment = commentRepository.findById(commentId).orElseThrow(() ->
                 new CommentNotFoundException("Comment not found"));

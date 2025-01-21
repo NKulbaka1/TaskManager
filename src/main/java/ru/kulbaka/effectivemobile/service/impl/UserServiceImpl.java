@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.kulbaka.effectivemobile.entity.User;
 import ru.kulbaka.effectivemobile.exception.EmailExistsException;
 import ru.kulbaka.effectivemobile.exception.UserAlreadyAdminException;
@@ -31,6 +32,7 @@ public class UserServiceImpl implements UserService {
      * @throws EmailExistsException если такой пользователь уже существует
      */
     @Override
+    @Transactional
     public User create(User user) throws EmailExistsException {
         if (userRepository.existsByEmail(user.getEmail())) {
             throw new EmailExistsException("User already exists");
@@ -47,6 +49,7 @@ public class UserServiceImpl implements UserService {
      * @throws UserNotFoundException если пользователь не найден
      */
     @Override
+    @Transactional(readOnly = true)
     public User getByEmail(String email) throws UserNotFoundException {
         return userRepository.findUserByEmail(email)
                 .orElseThrow(() -> new UserNotFoundException("User " + email + " not found"));
@@ -60,6 +63,7 @@ public class UserServiceImpl implements UserService {
      * @throws UserNotFoundException если пользователь не найден
      */
     @Override
+    @Transactional(readOnly = true)
     public UserDetailsService userDetailsService() throws UserNotFoundException {
         return email -> {
             User user = getByEmail(email);
@@ -74,6 +78,7 @@ public class UserServiceImpl implements UserService {
      * @throws UserNotFoundException если пользователь не найден
      */
     @Override
+    @Transactional(readOnly = true)
     public User getCurrentUser() throws UserNotFoundException {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         return getByEmail(email);
@@ -87,6 +92,7 @@ public class UserServiceImpl implements UserService {
      * @throws UserNotFoundException     если пользователь не найден
      */
     @Override
+    @Transactional
     public String getAdmin() throws UserNotFoundException, UserAlreadyAdminException {
         User user = getCurrentUser();
         if (user.getUserRole() == UserRole.ROLE_ADMIN) {

@@ -6,12 +6,11 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.kulbaka.effectivemobile.dto.*;
 import ru.kulbaka.effectivemobile.entity.Task;
 import ru.kulbaka.effectivemobile.entity.User;
 import ru.kulbaka.effectivemobile.exception.TaskNotFoundException;
-import ru.kulbaka.effectivemobile.exception.UserAlreadyAdminException;
-import ru.kulbaka.effectivemobile.exception.UserNotFoundException;
 import ru.kulbaka.effectivemobile.mapper.TaskMapper;
 import ru.kulbaka.effectivemobile.model.UserRole;
 import ru.kulbaka.effectivemobile.repository.TaskRepository;
@@ -41,6 +40,8 @@ public class TaskServiceImpl implements TaskService {
      * @return список найденных задач
      * @throws TaskNotFoundException если задачи не найдены
      */
+    @Override
+    @Transactional(readOnly = true)
     public List<TaskViewDTO> getAll() throws TaskNotFoundException {
         List<Task> tasks = taskRepository.findAll();
 
@@ -60,6 +61,7 @@ public class TaskServiceImpl implements TaskService {
      * @throws TaskNotFoundException если задача не найдена
      */
     @Override
+    @Transactional(readOnly = true)
     public Task getTaskById(Long id) throws TaskNotFoundException {
         return taskRepository.findById(id).orElseThrow(() ->
                 new TaskNotFoundException("Task with id = " + id + " not found"));
@@ -70,6 +72,8 @@ public class TaskServiceImpl implements TaskService {
      *
      * @return созданная задача
      */
+    @Override
+    @Transactional
     public TaskViewDTO create(TaskCreateDTO taskCreateDTO) {
         String currentUserEmail = userService.getCurrentUser().getEmail();
 
@@ -91,6 +95,7 @@ public class TaskServiceImpl implements TaskService {
      * @throws TaskNotFoundException если задача не найдена
      */
     @Override
+    @Transactional
     public TaskViewDTO update(Long id, TaskUpdateDTO taskUpdateDTO) throws TaskNotFoundException {
         Task existedTask = getTaskById(id);
         selectiveTaskUpdate(taskUpdateDTO, existedTask);
@@ -108,6 +113,7 @@ public class TaskServiceImpl implements TaskService {
      * @throws TaskNotFoundException если задача не найдена
      */
     @Override
+    @Transactional
     public TaskViewDTO delete(Long id) throws TaskNotFoundException {
         Task taskToDelete = getTaskById(id);
 
@@ -126,6 +132,7 @@ public class TaskServiceImpl implements TaskService {
      * @throws AccessDeniedException если нет прав на изменение
      */
     @Override
+    @Transactional
     public TaskViewDTO changeStatus(Long id, TaskChangeStatusDTO taskChangeStatusDTO) throws TaskNotFoundException, AccessDeniedException {
         Task taskToChange = getTaskById(id);
 
@@ -149,6 +156,7 @@ public class TaskServiceImpl implements TaskService {
      * @throws TaskNotFoundException если задача не найдена
      */
     @Override
+    @Transactional
     public TaskViewDTO changePriority(Long id, TaskChangePriorityDTO taskChangePriorityDTO) throws TaskNotFoundException {
         Task taskToChange = getTaskById(id);
         taskToChange.setPriority(taskChangePriorityDTO.getPriority());
@@ -166,6 +174,7 @@ public class TaskServiceImpl implements TaskService {
      * @throws TaskNotFoundException если задачи не найдены
      */
     @Override
+    @Transactional(readOnly = true)
     public List<TaskViewDTO> getAllByAuthor(TaskGetAllByPersonDTO taskViewAllByAuthorDTO) throws TaskNotFoundException {
         User author = userService.getByEmail(taskViewAllByAuthorDTO.getEmail());
 
@@ -184,6 +193,7 @@ public class TaskServiceImpl implements TaskService {
      * @throws TaskNotFoundException если задачи не найдены
      */
     @Override
+    @Transactional(readOnly = true)
     public List<TaskViewDTO> getAllByPerformer(TaskGetAllByPersonDTO taskViewAllByPerformerDTO) {
         User performer = userService.getByEmail(taskViewAllByPerformerDTO.getEmail());
 
